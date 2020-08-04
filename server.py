@@ -28,6 +28,21 @@ def get_pokemons(usertrainer):
     except IntegrityError:
         return "Error" 
 
+@app.route('/pokemons/<userpokemon>')
+def get_trainers(userpokemon):
+    try:
+        with connection.cursor() as cursor:
+            query = """SELECT t_name FROM OwnedBy, Pokemon,
+            Trainer WHERE p_name = '{}' and Trainer.t_id = OwnedBy.t_id 
+            and Pokemon.p_id = OwnedBy.p_id""".format(userpokemon )
+            cursor.execute(query)
+            result = cursor.fetchall()
+            return json.dumps(result)
+
+    except IntegrityError:
+        return "Error"
+
+
 if __name__ == '__main__':
     app.run(port=4000)        
 
