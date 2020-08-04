@@ -82,6 +82,21 @@ def add_pokemon():
                 return {"status":"Success.Added pokemon"},201
         except IntegrityError:
             pass
+        
+@app.route('/types/<usertype>')
+def get_pokemons_by_type(usertype):
+    try:
+        with connection.cursor() as cursor:
+            query = """SELECT p_name FROM Pokemon,Type_ ,Pokemon_Type
+            WHERE ty_name = '{}' and Type_.ty_id = Pokemon_Type.ty_id 
+            and Pokemon.p_id = Pokemon_Type.p_id""".format(usertype)
+            cursor.execute(query)
+            result = cursor.fetchall()
+            return json.dumps(result)
+
+    except IntegrityError:
+        return "Error"
+
 if __name__ == '__main__':
     app.run(port=4000)        
 
