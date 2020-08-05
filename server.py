@@ -24,9 +24,8 @@ def update_types(username):
             .format(username)
             cursor.execute(query)
             pokemon_id = cursor.fetchone()
-            if not pokemon_id.get("p_id"):
-                raise ValueError 
-    except ValueError:
+            pokemon_id.get("p_id")
+    except AttributeError:
         return {"Error":f"{username} not exist"}
     except IntegrityError:
         pass 
