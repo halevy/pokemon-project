@@ -82,7 +82,7 @@ def add_pokemon():
                 return {"status":"Success.Added pokemon"},201
         except IntegrityError:
             pass
-        
+
 @app.route('/types/<usertype>')
 def get_pokemons_by_type(usertype):
     try:
@@ -96,6 +96,22 @@ def get_pokemons_by_type(usertype):
 
     except IntegrityError:
         return "Error"
+
+@app.route('/pokemons/<trainer>',methods=["DELETE"])
+def delete_ownedBy(trainer):
+    try:
+        with connection.cursor() as cursor:
+            queryID = "SELECT t_id FROM Trainer WHERE t_name = '{}'".format(trainer)
+            cursor.execute(queryID)
+            trainer_id = cursor.fetchone()
+            query = "DELETE FROM OwnedBy WHERE t_id = {}".format(trainer_id["t_id"])
+            cursor.execute(query)
+            connection.commit()
+            return {"status":f"Saccess.Deleted ownedBy {trainer}"}
+            
+    except IntegrityError:
+        return {"Error":"trainer not found"}
+    
 
 if __name__ == '__main__':
     app.run(port=4000)        
