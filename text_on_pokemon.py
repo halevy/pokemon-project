@@ -24,5 +24,5 @@ def read_files():
 def get_sentence(name_pokemon):
     res = first_last_d.get(name_pokemon[0] + name_pokemon[-1])
     if res:
-        return res
-
+        return {"sentence": res}
+    return {"status": "not exist sentence"}
