@@ -1,4 +1,5 @@
 import json
+import requests
 from flask import Flask, Response,request
 import pymysql
 from pymysql import IntegrityError
@@ -13,6 +14,49 @@ connection = pymysql.connect(
 )
 
 app = Flask(__name__, static_url_path='', static_folder='public')
+
+@app.route('/update_types/<username>',methods=["PATCH"])
+def update_types(username):
+    try:
+        with connection.cursor() as cursor:
+            query = "SELECT p_id FROM Pokemon WHERE p_name = '{}'"\
+            .format(username)
+            cursor.execute(query)
+            pokemon_id = cursor.fetchone()
+            if not pokemon_id.get("p_id"):
+                raise ValueError 
+    except ValueError:
+        return {"Error":f"{username} not exist"}
+    except IntegrityError:
+        pass 
+        
+    pokemon_url = f"https://pokeapi.co/api/v2/pokemon/{username}"
+    pokemon = requests.get(url=pokemon_url,verify=False).json()
+    if pokemon.get("types"):
+        try:
+            with connection.cursor() as cursor:
+                for type_ in pokemon["types"]:
+                    try:
+                        query = "INSERT INTO Type_(ty_name) values('{}')"\
+                        .format(type_["type"]["name"])
+                        cursor.execute(query)
+                        connection.commit()
+                    except IntegrityError:
+                        pass
+                    try:    
+                        queryID = "SELECT ty_id FROM Type_ WHERE ty_name = '{}'".format(type_["type"]["name"])
+                        cursor.execute(queryID)
+                        type_id = cursor.fetchone()
+                        query = "INSERT INTO Pokemon_Type(p_id,ty_id) values({}, {})"\
+                        .format(pokemon["id"], type_id["ty_id"])
+                        cursor.execute(query)
+                        connection.commit()
+                    except IntegrityError:    
+                        pass
+        except IntegrityError:
+            return "Error"
+        return {"status":"Success.Updated types"}     
+    
 
 @app.route('/trainers/<usertrainer>')
 def get_pokemons(usertrainer):
@@ -79,9 +123,9 @@ def add_pokemon():
                 .format(pokemon["id"], type_id["ty_id"])
                 cursor.execute(query)
                 connection.commit()
-                return {"status":"Success.Added pokemon"},201
         except IntegrityError:
-            pass
+            return "Error"
+    return {"status":"Success.Added pokemon"},201        
 
 @app.route('/types/<usertype>')
 def get_pokemons_by_type(usertype):
