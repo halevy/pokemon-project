@@ -9,7 +9,7 @@ import queries
 connection = pymysql.connect(
     host="localhost",
     user="root",
-    password="ruthy",
+    password="hvush,",
     db="POKEMON",
     charset="utf8",
     cursorclass=pymysql.cursors.DictCursor
@@ -107,11 +107,11 @@ def delete_ownedBy(trainer):
     except IntegrityError:
         return {"Error":"trainer not found"}
 
-@app.route('/sentences/<userpokemon>')
-def pokemon_sentence(userpokemon):
+@app.route('/tips/<userpokemon>')
+def tip_of_pokemon(userpokemon):
     try:
         queries.get_p_id_by_name(userpokemon).get("p_id")
-        return text_on_pokemon.get_sentence(userpokemon)
+        return text_on_pokemon.get_tip_of_pokemon(userpokemon)
     except AttributeError:
         return {"Error":f"{userpokemon} not exist"}
     except IntegrityError:
@@ -119,6 +119,6 @@ def pokemon_sentence(userpokemon):
 
 
 if __name__ == '__main__':
-    text_on_pokemon.read_files()
+    text_on_pokemon.read_book()
     app.run(port=4000)        
 
