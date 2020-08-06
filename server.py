@@ -3,12 +3,19 @@ import requests
 from flask import Flask, Response,request
 import pymysql
 from pymysql import IntegrityError
+<<<<<<< HEAD
 import text_on_pokemon
+=======
+>>>>>>> fbd37d776519fd8e659f7e1b8a9e96bbe01205ff
 
 connection = pymysql.connect(
     host="localhost",
     user="root",
+<<<<<<< HEAD
     password="hvush,",
+=======
+    password="ruthy",
+>>>>>>> fbd37d776519fd8e659f7e1b8a9e96bbe01205ff
     db="POKEMON",
     charset="utf8",
     cursorclass=pymysql.cursors.DictCursor
@@ -24,8 +31,14 @@ def update_types(username):
             .format(username)
             cursor.execute(query)
             pokemon_id = cursor.fetchone()
+<<<<<<< HEAD
             pokemon_id.get("p_id")
     except AttributeError:
+=======
+            if not pokemon_id.get("p_id"):
+                raise ValueError 
+    except ValueError:
+>>>>>>> fbd37d776519fd8e659f7e1b8a9e96bbe01205ff
         return {"Error":f"{username} not exist"}
     except IntegrityError:
         pass 
@@ -155,6 +168,7 @@ def delete_ownedBy(trainer):
             
     except IntegrityError:
         return {"Error":"trainer not found"}
+<<<<<<< HEAD
 
 @app.route('/sentences/<userpokemon>')
 def pokemon_sentence(userpokemon):
@@ -174,5 +188,10 @@ def pokemon_sentence(userpokemon):
 
 if __name__ == '__main__':
     text_on_pokemon.read_files()
+=======
+    
+
+if __name__ == '__main__':
+>>>>>>> fbd37d776519fd8e659f7e1b8a9e96bbe01205ff
     app.run(port=4000)        
 
