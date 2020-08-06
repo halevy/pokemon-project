@@ -4,6 +4,7 @@ from flask import Flask, Response,request
 import pymysql
 from pymysql import IntegrityError
 import text_on_pokemon
+import queries
 
 connection = pymysql.connect(
     host="localhost",
@@ -19,12 +20,7 @@ app = Flask(__name__, static_url_path='', static_folder='public')
 @app.route('/update_types/<username>',methods=["PATCH"])
 def update_types(username):
     try:
-        with connection.cursor() as cursor:
-            query = "SELECT p_id FROM Pokemon WHERE p_name = '{}'"\
-            .format(username)
-            cursor.execute(query)
-            pokemon_id = cursor.fetchone()
-            pokemon_id.get("p_id")
+        queries.get_p_id_by_name(username).get("p_id")
     except AttributeError:
         return {"Error":f"{username} not exist"}
     except IntegrityError:
@@ -34,25 +30,17 @@ def update_types(username):
     pokemon = requests.get(url=pokemon_url,verify=False).json()
     if pokemon.get("types"):
         try:
-            with connection.cursor() as cursor:
-                for type_ in pokemon["types"]:
-                    try:
-                        query = "INSERT INTO Type_(ty_name) values('{}')"\
-                        .format(type_["type"]["name"])
-                        cursor.execute(query)
-                        connection.commit()
-                    except IntegrityError:
-                        pass
-                    try:    
-                        queryID = "SELECT ty_id FROM Type_ WHERE ty_name = '{}'".format(type_["type"]["name"])
-                        cursor.execute(queryID)
-                        type_id = cursor.fetchone()
-                        query = "INSERT INTO Pokemon_Type(p_id,ty_id) values({}, {})"\
-                        .format(pokemon["id"], type_id["ty_id"])
-                        cursor.execute(query)
-                        connection.commit()
-                    except IntegrityError:    
-                        pass
+            for type_ in pokemon["types"]:
+                try:
+                    queries.insert_into_Type(type_)
+                except IntegrityError:
+                    pass
+                try:    
+                    type_id = queries.get_ty_id_by_name(type_["type"]["name"])
+                    queries.insert_into_Pokemon_Type(pokemon["id"], type_id["ty_id"])
+                except IntegrityError:    
+                    pass
+
         except IntegrityError:
             return "Error"
         return {"status":"Success.Updated types"}     
@@ -61,27 +49,16 @@ def update_types(username):
 @app.route('/trainers/<usertrainer>')
 def get_pokemons(usertrainer):
     try:
-        with connection.cursor() as cursor:
-            query = """SELECT p_name FROM OwnedBy, Pokemon, Trainer 
-            WHERE t_name = '{}' and Trainer.t_id = OwnedBy.t_id 
-            and Pokemon.p_id = OwnedBy.p_id""".format(usertrainer)
-            cursor.execute(query)
-            result = cursor.fetchall()
-            return json.dumps(result)
-
+        result = queries.get_p_name_by_trainer(usertrainer)
+        return json.dumps(result)
     except IntegrityError:
         return "Error" 
 
 @app.route('/pokemons/<userpokemon>')
 def get_trainers(userpokemon):
     try:
-        with connection.cursor() as cursor:
-            query = """SELECT t_name FROM OwnedBy, Pokemon,
-            Trainer WHERE p_name = '{}' and Trainer.t_id = OwnedBy.t_id 
-            and Pokemon.p_id = OwnedBy.p_id""".format(userpokemon )
-            cursor.execute(query)
-            result = cursor.fetchall()
-            return json.dumps(result)
+        result = queries.get_t_name_by_pokemon(userpokemon)
+        return json.dumps(result)
 
     except IntegrityError:
         return "Error"
@@ -95,34 +72,19 @@ def add_pokemon():
         return {"Error":f"fields {missing_fields} are missing"},400
 
     try:
-        with connection.cursor() as cursor:
-            query = "INSERT INTO Pokemon(p_id, p_name, height, weight) values({}, '{}', {}, {})"\
-            .format(pokemon["id"], pokemon["name"], pokemon["height"], pokemon["weight"])
-            cursor.execute(query)
-            connection.commit()
-            
+        queries.insert_into_Pokemon(pokemon)  
     except IntegrityError:
         return {"Error":"The pokemon already exist"},409 
 
     for type_ in pokemon["types"]:
         try:
-            with connection.cursor() as cursor:
-                query = "INSERT INTO Type_(ty_name) values('{}')"\
-                .format(type_)
-                cursor.execute(query)
-                connection.commit()
+            queries.insert_into_Type(type_)
         except IntegrityError:
             pass       
     
         try:
-            with connection.cursor() as cursor:
-                queryID = "SELECT ty_id FROM Type_ WHERE ty_name = '{}'".format(type_)
-                cursor.execute(queryID)
-                type_id = cursor.fetchone()
-                query = "INSERT INTO Pokemon_Type(p_id,ty_id) values({}, {})"\
-                .format(pokemon["id"], type_id["ty_id"])
-                cursor.execute(query)
-                connection.commit()
+            type_id = queries.get_ty_id_by_name(type_["type"]["name"])
+            queries.insert_into_Pokemon_Type(pokemon["id"], type_id["ty_id"])
         except IntegrityError:
             return "Error"
     return {"status":"Success.Added pokemon"},201        
@@ -130,13 +92,8 @@ def add_pokemon():
 @app.route('/types/<usertype>')
 def get_pokemons_by_type(usertype):
     try:
-        with connection.cursor() as cursor:
-            query = """SELECT p_name FROM Pokemon,Type_ ,Pokemon_Type
-            WHERE ty_name = '{}' and Type_.ty_id = Pokemon_Type.ty_id 
-            and Pokemon.p_id = Pokemon_Type.p_id""".format(usertype)
-            cursor.execute(query)
-            result = cursor.fetchall()
-            return json.dumps(result)
+        result = queries.get_p_id_by_type_name(usertype)
+        return json.dumps(result)
 
     except IntegrityError:
         return "Error"
@@ -159,13 +116,8 @@ def delete_ownedBy(trainer):
 @app.route('/sentences/<userpokemon>')
 def pokemon_sentence(userpokemon):
     try:
-        with connection.cursor() as cursor:
-            query = "SELECT p_id FROM Pokemon WHERE p_name = '{}'"\
-            .format(userpokemon)
-            cursor.execute(query)
-            pokemon_id = cursor.fetchone()
-            pokemon_id.get("p_id")
-            return text_on_pokemon.get_sentence(userpokemon)
+        queries.get_p_id_by_name(userpokemon).get("p_id")
+        return text_on_pokemon.get_sentence(userpokemon)
     except AttributeError:
         return {"Error":f"{userpokemon} not exist"}
     except IntegrityError:
