@@ -72,3 +72,12 @@ def get_p_id_by_type_name(type_):
         cursor.execute(query)
         result = cursor.fetchall()
         return result
+
+def delete_ownedBy_by_t_name(trainer):
+    with connection.cursor() as cursor:
+        queryID = "SELECT t_id FROM Trainer WHERE t_name = '{}'".format(trainer)
+        cursor.execute(queryID)
+        trainer_id = cursor.fetchone()
+        query = "DELETE FROM OwnedBy WHERE t_id = {}".format(trainer_id["t_id"])
+        cursor.execute(query)
+        connection.commit()

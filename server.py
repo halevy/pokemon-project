@@ -101,14 +101,8 @@ def get_pokemons_by_type(usertype):
 @app.route('/pokemons/<trainer>',methods=["DELETE"])
 def delete_ownedBy(trainer):
     try:
-        with connection.cursor() as cursor:
-            queryID = "SELECT t_id FROM Trainer WHERE t_name = '{}'".format(trainer)
-            cursor.execute(queryID)
-            trainer_id = cursor.fetchone()
-            query = "DELETE FROM OwnedBy WHERE t_id = {}".format(trainer_id["t_id"])
-            cursor.execute(query)
-            connection.commit()
-            return {"status":f"Saccess.Deleted ownedBy {trainer}"}
+        queries.delete_ownedBy_by_t_name(trainer)
+        return {"status":f"Saccess.Deleted ownedBy {trainer}"}
             
     except IntegrityError:
         return {"Error":"trainer not found"}
