@@ -3,7 +3,7 @@ import requests
 from flask import Flask, request
 import pymysql
 from pymysql import IntegrityError
-from SRC import text_on_pokemon, queries
+from SRC import prepare_tips_for_use, queries
 
 connection = pymysql.connect(
     host="localhost",
@@ -110,7 +110,7 @@ def delete_ownedBy(trainer):
 def tip_of_pokemon(userpokemon):
     try:
         queries.get_p_id_by_name(userpokemon).get("p_id")
-        return text_on_pokemon.get_tip_of_pokemon(userpokemon)
+        return prepare_tips_for_use.get_tip_of_pokemon(userpokemon)
     except AttributeError:
         return {"Error":f"{userpokemon} not exist"}
     except IntegrityError:
@@ -118,6 +118,6 @@ def tip_of_pokemon(userpokemon):
 
 
 if __name__ == '__main__':
-    text_on_pokemon.read_book()
+    prepare_tips_for_use.read_book()
     app.run(port=4000)        
 
