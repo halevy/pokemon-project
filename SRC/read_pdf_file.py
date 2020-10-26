@@ -1,3 +1,4 @@
+#pip install pdfminer.six
 import io
 
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter

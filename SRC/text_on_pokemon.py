@@ -1,5 +1,5 @@
-import os
-import read_pdf_file
+from SRC import read_pdf_file
+
 first_last_d = dict()
 
 
@@ -14,7 +14,7 @@ def insert_sentence_to_dict(sentence):
 
 def read_book():
     count = 2
-    sentences = read_pdf_file.convert_pdf_to_txt('book.pdf')
+    sentences = read_pdf_file.convert_pdf_to_txt('../DOCS/book.pdf')
     sentences = sentences[sentences.index("#1:"):]
     while sentences:
         try:

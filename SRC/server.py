@@ -1,15 +1,14 @@
 import json
 import requests
-from flask import Flask, Response,request
+from flask import Flask, request
 import pymysql
 from pymysql import IntegrityError
-import text_on_pokemon
-import queries
+from SRC import text_on_pokemon, queries
 
 connection = pymysql.connect(
     host="localhost",
     user="root",
-    password="hvush,",
+    password="ruthy",
     db="POKEMON",
     charset="utf8",
     cursorclass=pymysql.cursors.DictCursor
