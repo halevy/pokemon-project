@@ -1,1 +1,1 @@
-# pokemon-project-yehudit-ruthy
+# pokemon-project
